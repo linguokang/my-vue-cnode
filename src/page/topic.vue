@@ -4,7 +4,7 @@
     <div class="topic">
       <h1 class="title">{{topic.title}}</h1>
       <div class="tap">
-        <span class="time">发布于 {{topic.create_at}} 前</span>
+        <span class="time">发布于 {{topic.create_at|getTimeAgo}} </span>
         <span class="author">作者 {{topic.author.loginname}}</span>
         <span class="visit">{{topic.visit_count}} 次浏览</span>
       </div>
@@ -18,7 +18,9 @@
         <ul class="replies_list">
           <li v-for="item in topic.replies">
             <div class="replie_author">
-              <img class="avatar" :src="item.author.avatar_url">
+              <router-link :to="{name:'user',params:{name:item.author.loginname}}">
+                <img class="avatar" :src="item.author.avatar_url">
+              </router-link>
               <span class="name">{{item.author.loginname}}</span>
             </div>
             <div class="replie_content" v-html="item.content">
@@ -34,6 +36,7 @@
 <script>
   import nvHead from '../components/header.vue'
   import base from '../configs/base.js'
+  import utils from '../lib/utils.js';
 
     export default{
         data(){
@@ -43,7 +46,7 @@
             }
         },
         mounted(){
-          // 获取url传的tab参数
+          // 获取url传的id参数
           this.topicId = this.$route.params.id;
 
           this.$http.get(base.target+'/topic/'+this.topicId).then(response => {
@@ -53,6 +56,11 @@
             // error callback
           })
         },
+        filters: {
+          getTimeAgo(time) {
+            return utils.getTimeAgo(time);
+          }
+        },
         components:{
           nvHead
         }
@@ -60,6 +68,9 @@
 </script>
 <style lang="scss">
   .topic{
+    max-width: 1200px;
+    background: #fff;
+    margin: 0 auto;
     .title{
       font-size: 24px;
     }
@@ -94,6 +105,7 @@
     .replies{
       display: flex;
       flex-direction: column;
+      margin-top: 20px;
       .replies_count{
         text-align: left;
         background: #e7e7e7;
@@ -125,7 +137,7 @@
                 overflow: auto;
               }
               img{
-                width: 100%;
+                max-width: 100%;
               }
               code{
                 width: 100%;
