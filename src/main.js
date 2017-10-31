@@ -22,3 +22,29 @@ new Vue({
   template: '<App/>',
   components: { App }
 })
+
+//router.beforeEach((to, from, next) => {
+//  // 处理左侧滚动不影响右边
+//  // $('html, body, #page').removeClass('scroll-hide');
+//  $('body').css('overflow', 'auto');
+//  if (to.matched.some(record => record.meta.requiresAuth)) {
+//    if (store.state.userInfo.userId) {
+//      next();
+//    } else {
+//      next({
+//        path: '/login',
+//        query: { redirect: to.fullPath }
+//      });
+//    }
+//  } else {
+//    next();
+//  }
+//});
+
+router.beforeEach((to, from, next) => {
+  //// ...
+  //if(to.name == from.name){
+  //  router.go(0);
+  //}
+  next()
+})

@@ -14,7 +14,7 @@
             <li class="topic_item" v-for='item in user.recent_replies'>
 
               <div class="left">
-                <router-link :to="{name:'user',params:{name:item.author.loginname}}" @click.native="flushCom">
+                <router-link :to="{name:'user',params:{name:item.author.loginname}}">
                   <img :src='item.author.avatar_url' class="avatar">
                 </router-link>
                 <div class="content">
@@ -34,7 +34,7 @@
           <ul>
             <li class="topic_item" v-for='item in user.recent_topics'>
               <div class="left">
-                <router-link :to="{name:'user',params:{name:item.author.loginname}}" @click.native="flushCom">
+                <router-link :to="{name:'user',params:{name:item.author.loginname}}">
                   <img :src='item.author.avatar_url' class="avatar">
                 </router-link>
                 <div class="content">
@@ -56,6 +56,8 @@
   import base from '../configs/base.js'
   import nvHead from '../components/header.vue'
   import utils from '../lib/utils.js';
+  import router from '../router'
+
     export default{
         data(){
             return{
@@ -63,22 +65,25 @@
             }
         },
         mounted(){
-          // 获取url传的tab参数
-          this.useranme = this.$route.params.name||'';
-          // 获取url传的tab参数
-
-          this.$http.get(base.target+'/user/'+this.useranme).then(response => {
-            this.user = response.data.data
-          console.log(this.user)
-          }, response => {
-            // error callback
-          })
+          this.fetchDate();
         },
         methods:{
-          flushCom:function(){
-            this.$router.go(0);
-            console.log(1)
+          fetchDate:function(){
+            // 获取url传的tab参数
+            this.useranme = this.$route.params.name||'';
+            // 获取url传的tab参数
+
+            this.$http.get(base.target+'/user/'+this.useranme).then(response => {
+              this.user = response.data.data
+            console.log(this.user)
+            }, response => {
+                // error callback
+            })
           }
+        },
+        watch: {
+          // 如果路由有变化，会再次执行该方法
+          "$route": "fetchDate"
         },
         filters: {
           getTimeAgo(time) {

@@ -37,6 +37,7 @@
   import nvHead from '../components/header.vue'
   import base from '../configs/base.js'
   import utils from '../lib/utils.js';
+  import router from '../router'
 
     export default{
         data(){
@@ -46,15 +47,20 @@
             }
         },
         mounted(){
-          // 获取url传的id参数
-          this.topicId = this.$route.params.id;
+          this.fetchDate()
+        },
+        methods:{
+          fetchDate(){
+            // 获取url传的id参数
+            this.topicId = this.$route.params.id;
 
-          this.$http.get(base.target+'/topic/'+this.topicId).then(response => {
-            this.topic = response.data.data
+            this.$http.get(base.target+'/topic/'+this.topicId).then(response => {
+              this.topic = response.data.data
             console.log(this.topics)
-        }, response => {
-            // error callback
-          })
+            }, response => {
+              // error callback
+            })
+          }
         },
         filters: {
           getTimeAgo(time) {

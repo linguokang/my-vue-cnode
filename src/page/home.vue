@@ -48,25 +48,75 @@
     export default{
         data(){
             return{
-                tab :'ask',
+                tab :'all',
                 page:1,
                 topics: [],
             }
         },
         mounted(){
-          // 获取url传的tab参数
-          this.tab = this.$route.query.tab||'';
-          // 获取url传的tab参数
-          this.page = Number(this.$route.query.page||1)
-          console.log(typeof this.page)
+//          this.getTopics()
 
-          this.$http.get(base.target+'/topics?tab='+this.tab+'&page='+this.page).then(response => {
-            this.topics = response.data.data
-          }, response => {
-            // error callback
-          })
+          // 如果从详情返回并且之前存有对应的查询条件和参数
+          // 则直接渲染之前的数据
+          if ( window.window.sessionStorage.tab === this.tab) {
+            console.log('获取缓存数据')
+            this.topics = JSON.parse(window.window.sessionStorage.topics);
+//            this.searchKey = JSON.parse(window.window.sessionStorage.searchKey)
+//            this.$nextTick(() => $(window).scrollTop(window.window.sessionStorage.scrollTop));
+          } else {
+            console.log('获取服务端数据')
+            this.getTopics();
+          }
+          this.initpage()
+        },
+        beforeRouteLeave(to, from, next) {
+          // 如果跳转到详情页面，则记录关键数据
+          // 方便从详情页面返回到该页面的时候继续加载之前位置的数据
+          if (to.name === 'topic') {
+            console.log('跳去topic页面')
+            // 当前滚动条位置
+//            window.window.sessionStorage.scrollTop = $(window).scrollTop();
+            // 当前页面主题数据
+            window.window.sessionStorage.topics = JSON.stringify(this.topics);
+            // 查询参数
+//            window.window.sessionStorage.searchKey = JSON.stringify(this.searchKey);
+            // 当前tab
+            window.window.sessionStorage.tab = from.query.tab || 'all';
+          }
+//          $(window).off('scroll');
+          next();
+        },
+        beforeRouteEnter(to, from, next) {
+          if (from.name !== 'topic') {
+
+            // 页面切换移除之前记录的数据集
+            if (window.window.sessionStorage.tab) {
+              window.window.sessionStorage.removeItem('topics');
+              window.window.sessionStorage.removeItem('searchKey');
+              window.window.sessionStorage.removeItem('tab');
+            }
+          }
+          if (from.name == 'topic') {
+            console.log('来自topic页面')
+          }
+          next();
         },
         methods:{
+          getTopics(){
+            // 获取url传的tab参数
+            this.tab = this.$route.query.tab||'all';
+            // 获取url传的tab参数
+
+
+            this.$http.get(base.target+'/topics?tab='+this.tab+'&page='+this.page).then(response => {
+              this.topics = response.data.data
+          }, response => {
+              // error callback
+            })
+          },
+          initpage(){
+            this.page = Number(this.$route.query.page||1)
+          },
           getTabInfo(tab, good = false, top, isClass) {
             return utils.getTabInfo(tab, good, top, isClass);
           },
@@ -78,7 +128,6 @@
           },
           flushCom:function(){
             this.$router.go(0);
-            console.log(1)
           }
         },
         filters: {
