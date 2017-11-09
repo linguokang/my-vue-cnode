@@ -17,17 +17,39 @@
         <div class="replies_count">{{topic.replies.length}} 条回复</div>
         <ul class="replies_list">
           <li v-for="item in topic.replies">
-            <div class="replie_author">
-              <router-link :to="{name:'user',params:{name:item.author.loginname}}">
-                <img class="avatar" :src="item.author.avatar_url">
-              </router-link>
-              <span class="name">{{item.author.loginname}}</span>
-            </div>
-            <div class="replie_content" v-html="item.content">
+            <div class="replies_box">
+              <div class="replies_left">
+                <div class="replie_author">
+                  <router-link :to="{name:'user',params:{name:item.author.loginname}}">
+                    <img class="avatar" :src="item.author.avatar_url">
+                  </router-link>
+                  <span class="name">{{item.author.loginname}}</span>
+                </div>
+                <div class="replie_content" v-html="item.content">
 
+                </div>
+              </div>
+              <div class="replies_right">
+                <i class="el-icon-star-off" v-if="!isUps(item.ups)" @click="like(item.id,item.ups)"></i>
+                <i class="el-icon-star-on" v-if="isUps(item.ups)" @click="like(item.id,item.ups)"></i>
+                {{item.ups.length}}
+                <i class="el-icon-edit" @click='addReply(item.id)'></i>
+              </div>
+            </div>
+            <div class="replies_comment">
+              <div class="markdown"   v-if="userInfo.userId && curReplyId === item.id">
+                <div class="title">添加回复</div>
+                <markdown-editor v-model="content[item.id]" ref="markdownEditor"></markdown-editor>
+                <el-button type="primary" @click='addReplies(item.id)'>回复</el-button>
+              </div>
             </div>
           </li>
         </ul>
+      </div>
+      <div class="markdown">
+        <div class="title">添加回复</div>
+        <markdown-editor v-model="content[topic.id]" ref="markdownEditor"></markdown-editor>
+        <el-button type="primary" @click='addReplies(topic.id)'>回复</el-button>
       </div>
     </div>
   </div>
@@ -38,18 +60,73 @@
   import base from '../configs/base.js'
   import utils from '../lib/utils.js';
   import router from '../router'
+  import {mapGetters} from 'vuex';
+  import markdownEditor from 'vue-simplemde/src/markdown-editor'
 
+  require ('../lib/simplemde.min.css');
     export default{
         data(){
             return{
               topic:{},
-              topicId: '5433d5e4e737cbe96dcef312',
+              content:{},
+              curReplyId: ''
             }
         },
         mounted(){
           this.fetchDate()
+          this.initArray()
+        },
+        computed: {
+          ...mapGetters({
+            userInfo: 'getUserInfo'
+          })
+
         },
         methods:{
+          addReply(id) {
+            if(this.curReplyId == id){
+              this.curReplyId = '';
+            }else{
+              this.curReplyId = id;
+            }
+
+            if (!this.userInfo.userId) {
+              this.$router.push({
+                name: 'login',
+                params: {
+                  redirect: encodeURIComponent(this.$route.path)
+                }
+              });
+            }
+          },
+          addReplies(id){
+            this.$http.post (base.target+'/topic/'+this.topic.id+'/replies',{
+              accesstoken:this.userInfo.token,
+              content :this.content[id],
+              reply_id :id
+            }).then(response => {
+              console.log(response.data)
+              if (response.data.success) {
+                this.topic.replies.push({
+                  id: response.data.reply_id,
+                  author: {
+                    loginname: this.userInfo.loginname,
+                    avatar_url: this.userInfo.avatar_url
+                  },
+                  content: this.content[id],
+                  ups: [],
+                });
+              }
+              this.content = '';
+
+            }, response => {
+              // error callback
+              console.log(response)
+            })
+          },
+          isUps(ups){
+            return ups.contains(this.userInfo.userId)
+          },
           fetchDate(){
             // 获取url传的id参数
             this.topicId = this.$route.params.id;
@@ -60,7 +137,53 @@
             }, response => {
               // error callback
             })
+          },
+          like(id,ups){
+            if (!this.userInfo.userId) {
+              this.$router.push({
+                name: 'login',
+                params: {
+                  redirect: encodeURIComponent(this.$route.path)
+                }
+              });
+            }else{
+              this.$http.post (base.target+'/reply/'+id+'/ups',{
+                accesstoken:this.userInfo.token,
+              }).then(response => {
+                if(response.data.action == 'up'){
+                ups.push(this.userInfo.userId)
+                }else{
+                  ups.remove(this.userInfo.userId)
+                }
+              }, response => {
+                alert(response.data.error_msg)
+              })
+            }
+          },
+          initArray(){
+            Array.prototype.indexOf = function(val) {
+              for (var i = 0; i < this.length; i++) {
+                if (this[i] == val) return i;
+              }
+              return -1;
+            };
+            Array.prototype.remove = function(val) {
+              var index = this.indexOf(val);
+              if (index > -1) {
+                this.splice(index, 1);
+              }
+            };
+            Array.prototype.contains = function(obj) {
+              var i = this.length;
+              while (i--) {
+                if (this[i] === obj) {
+                  return true;
+                }
+              }
+              return false;
+            }
           }
+
         },
         filters: {
           getTimeAgo(time) {
@@ -68,15 +191,17 @@
           }
         },
         components:{
-          nvHead
+          nvHead,
+          markdownEditor
         }
     }
 </script>
 <style lang="scss">
+
   .topic{
     max-width: 1200px;
     background: #fff;
-    margin: 0 auto;
+    margin: 20px auto;
     .title{
       font-size: 24px;
     }
@@ -123,34 +248,59 @@
         li{
           border-bottom: 1px solid #b6b6b6;
           padding: 10px;
-          .replie_author{
+
+          .replies_box{
             display: flex;
-            align-items: center;
-            .avatar{
-              width: 30px;
+            justify-content: space-between;
+            .replies_left{
+              .replie_author{
+                display: flex;
+                align-items: center;
+                .avatar{
+                  width: 30px;
+                }
+                .name{
+                  margin-left: 10px;
+                }
+              }
+              .replie_content{
+                text-align: left;
+                margin-left: 40px;
+                .markdown-text{
+                  p{
+                    font-size: 15px;
+                    line-height: 25px;
+                    overflow: auto;
+                  }
+                  img{
+                    max-width: 100%;
+                  }
+                  code{
+                    width: 100%;
+                  }
+                }
+              }
             }
-            .name{
-              margin-left: 10px;
+            .replies_right{
+              display: flex;
+              align-items: center;
+              i{
+                margin: 0 5px;
+              }
             }
           }
-          .replie_content{
-            text-align: left;
-            margin-left: 40px;
-            .markdown-text{
-              p{
-                font-size: 15px;
-                line-height: 25px;
-                overflow: auto;
-              }
-              img{
-                max-width: 100%;
-              }
-              code{
-                width: 100%;
-              }
-            }
+          .replies_comment{
+
           }
         }
+      }
+    }
+    .markdown{
+      text-align: left;
+      margin-top: 20px;
+      .title{
+        text-align: left;
+        font-size: 18px;
       }
     }
 
