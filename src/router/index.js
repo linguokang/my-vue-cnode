@@ -10,7 +10,7 @@ Vue.use(Router)
 
 export default new Router({
   mode: 'history',
-  base:'linguokang.github.io/my-vue-cnode/',
+  base:'/my-vue-cnode/',
   routes: [
     {
       path: '/',
