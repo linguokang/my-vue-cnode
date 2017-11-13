@@ -12,8 +12,6 @@
           </el-form-item>
         </el-form>
       </div>
-
-
     </div>
 </template>
 
@@ -26,7 +24,7 @@
             return{
                 msg:'hello vue',
                 form:{
-                  AccessToken:'323c434b-d315-4026-9a83-0e342ec31df6'
+                  AccessToken:''
                 },
                 user:''
             }
@@ -50,7 +48,6 @@
               };
               window.window.sessionStorage.user = JSON.stringify(user);
               this.$store.dispatch('setUserInfo', user);
-//            alert(1)
               let redirect = decodeURIComponent(this.$route.query.redirect || '/');
               this.$router.push({
                 path: redirect
