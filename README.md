@@ -1,6 +1,7 @@
 #my-vue-cnode
 ---
 ####一个vuex vue-router axios element-ui的单页面应用demo，api来自cnodejs
+
 ###技术栈
 ---
 - Vue2.0：前端页面展示。
@@ -12,6 +13,7 @@
 - localStorage：保存用户信息。
 - Webpack：vue-cli自带Webpack，但是需要自己改造一下，比如要对需要安装sass相关loader，
 - flex：flex弹性布局，简单适配手机、PC端。
+
 ###项目运行
 ---
 git clone https://github.com/linguokang/my-vue-cnode.git
@@ -21,10 +23,13 @@ cd my-vue-cnode
 npm install
 
 npm start
+
 ###打包发布
 ---
 npm run build
+
 ###效果演示
 ---
 [点击查看demo](https://linguokang.github.io/my-vue-cnode/)
+
 ![](https://github.com/linguokang/my-vue-cnode/blob/master/demo.png)
