@@ -67,7 +67,19 @@
     export default{
         data(){
             return{
-              topic:{},
+              topic:{
+                author:{
+                  loginname:''
+                },
+                content:'',
+                replies:[
+                  {
+                    author:{
+                      loginname:''
+                    }
+                  }
+                ]
+              },
               content:{},
               curReplyId: ''
             }
@@ -79,8 +91,10 @@
         computed: {
           ...mapGetters({
             userInfo: 'getUserInfo'
-          })
-
+          }),
+        simplemde () {
+          return this.$refs.markdownEditor.simplemde
+        }
         },
         methods:{
           addReply(id) {
@@ -100,12 +114,25 @@
             }
           },
           addReplies(id){
-            this.$http.post (base.target+'/topic/'+this.topic.id+'/replies',{
-              accesstoken:this.userInfo.token,
-              content :this.content[id],
-              reply_id :id
-            }).then(response => {
-              console.log(response.data)
+            if (!this.userInfo.userId) {
+              this.$router.push({
+                name: 'login',
+                params: {
+                  redirect: encodeURIComponent(this.$route.path)
+                }
+              });
+            }else{
+              if(!this.content[id]){
+                  this.$alert('内容不能为空', {
+                    confirmButtonText: '确定'
+                  });
+                return false
+              }
+              this.$http.post (base.target+'/topic/'+this.topic.id+'/replies',{
+                accesstoken:this.userInfo.token,
+                content :this.content[id],
+                reply_id :id
+              }).then(response => {
               if (response.data.success) {
                 this.topic.replies.push({
                   id: response.data.reply_id,
@@ -117,12 +144,14 @@
                   ups: [],
                 });
               }
-              this.content = '';
 
+              this.content[id] = '';
             }, response => {
-              // error callback
-              console.log(response)
-            })
+                // error callback
+                console.log(response)
+              })
+            }
+
           },
           isUps(ups){
             return ups.contains(this.userInfo.userId)
@@ -133,7 +162,6 @@
 
             this.$http.get(base.target+'/topic/'+this.topicId).then(response => {
               this.topic = response.data.data
-            console.log(this.topics)
             }, response => {
               // error callback
             })

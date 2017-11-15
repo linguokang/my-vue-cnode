@@ -54,8 +54,8 @@
             }
         },
         mounted(){
-//          this.getTopics()
 
+          this.initpage()
           // 如果从详情返回并且之前存有对应的查询条件和参数
           // 则直接渲染之前的数据
           if ( window.window.sessionStorage.tab === this.tab) {
@@ -67,7 +67,7 @@
             console.log('获取服务端数据')
             this.getTopics();
           }
-          this.initpage()
+
         },
         beforeRouteLeave(to, from, next) {
           // 如果跳转到详情页面，则记录关键数据
@@ -165,7 +165,7 @@
             /*height: 100%;*/
           }
           .status{
-            width: 100px;
+            min-width: 100px;
           }
           a{
             color: #324157;

@@ -16,8 +16,8 @@
           <router-link :to="{ path: '/', query: { tab: 'ask' }}">问答</router-link>
         </el-menu-item>
       </el-submenu>
-      <el-menu-item index="3">消息</el-menu-item>
-      <el-menu-item index="4">关于</el-menu-item>
+      <el-menu-item index="3" @click="open()">消息</el-menu-item>
+      <el-menu-item index="4" @click="open()">关于</el-menu-item>
       <!--<el-menu-item index="5" class='fr hovernone'>-->
       <div class="fr h100">
         <!--未登录-->
@@ -50,6 +50,11 @@
       })
     },
     methods: {
+      open() {
+        this.$alert('待开发', {
+            confirmButtonText: '确定'
+      });
+      },
       flushCom:function(){
         this.$router.go(0);
       },
