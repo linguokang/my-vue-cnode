@@ -2,13 +2,13 @@
     <div>
       <nv-head></nv-head>
       <div class="w1200">
-        <el-form ref="form" :model="form" label-width="100px" class='form'>
-          <el-form-item label="Access Token">
-            <el-input v-model="form.AccessToken"></el-input>
+        <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class='form'>
+          <el-form-item label="Access Token" prop="accesstoken">
+            <el-input v-model="ruleForm.accesstoken"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="onSubmit">立即登录</el-button>
-            <el-button>取消</el-button>
+            <el-button type="primary" @click="onSubmit('ruleForm')">立即登录</el-button>
+            <el-button @click="resetForm('ruleForm')">取消</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -23,28 +23,50 @@
         data(){
             return{
                 msg:'hello vue',
-                form:{
-                  AccessToken:''
+              ruleForm:{
+                accesstoken:'',
+                name: '',
+                },
+                rules: {
+                  accesstoken: [
+                    { required: true, message: '请输入AccessToken', trigger: 'blur' },
+
+                  ],
+
                 },
                 user:''
             }
         },
         methods: {
-          onSubmit() {
-            console.log('submit!');
-            this.postDate()
+          onSubmit(formName) {
+            this.$refs[formName].validate((valid) => {
+              if (valid) {
+                this.postDate()
+                console.log('submit1!');
+              } else {
+
+                console.log('error submit!!');
+                return false;
+              }
+            });
+
+
+          },
+          resetForm(formName) {
+            console.log(1321)
+            this.$refs[formName].resetFields();
           },
           postDate:function(){
 
             this.$http.post(base.target+'/accesstoken',{
-              accesstoken:this.form.AccessToken
+              accesstoken:this.ruleForm.accesstoken
             }).then(response => {
               this.user = response.data
               let user = {
                 loginname: this.user.loginname,
                 avatar_url: this.user.avatar_url,
                 userId: this.user.id,
-                token: this.form.AccessToken
+                token: this.ruleForm.accesstoken
               };
               window.window.sessionStorage.user = JSON.stringify(user);
               this.$store.dispatch('setUserInfo', user);
@@ -53,7 +75,7 @@
                 path: redirect
               });
              }, response => {
-              // error callback
+                              this.$alert('accesstoken不正确')
             })
           }
         },
